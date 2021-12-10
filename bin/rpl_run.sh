@@ -579,7 +579,7 @@ for name in $input_list; do
   fi
 done
 
-if [ $OUTPUT_PLUGIN = 1 ] ; then 
+if [ $OUTPUT_PLUGIN = 0 ] ; then 
 	if [ -n "$csv_output" ] ; then
 	  merge_output $OUTPUT_LIST
 	  if [ "$GEN_STATS" = "1" ] ; then
