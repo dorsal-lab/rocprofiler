@@ -579,18 +579,20 @@ for name in $input_list; do
   fi
 done
 
-if [ -n "$csv_output" ] ; then
-  merge_output $OUTPUT_LIST
-  if [ "$GEN_STATS" = "1" ] ; then
-    db_output=$(echo $csv_output | sed "s/\.csv/.db/")
-    $ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $db_output $OUTPUT_LIST
-  else
-    $ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $csv_output $OUTPUT_LIST
-  fi
-  if [ "$?" -ne 0 ] ; then
-    echo "Profiling data corrupted: '$OUTPUT_LIST'" | tee "$ROCPROFILER_SESS/error"
-    RET=1
-  fi
+if [ $OUTPUT_PLUGIN = 1 ] ; then 
+	if [ -n "$csv_output" ] ; then
+	  merge_output $OUTPUT_LIST
+	  if [ "$GEN_STATS" = "1" ] ; then
+		db_output=$(echo $csv_output | sed "s/\.csv/.db/")
+		$ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $db_output $OUTPUT_LIST
+	  else
+		$ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $csv_output $OUTPUT_LIST
+	  fi
+	  if [ "$?" -ne 0 ] ; then
+		echo "Profiling data corrupted: '$OUTPUT_LIST'" | tee "$ROCPROFILER_SESS/error"
+		RET=1
+	  fi
+	fi
 fi
 
 if [ "$DATA_PATH" = "$TMP_DIR" ] ; then
