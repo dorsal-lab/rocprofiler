@@ -2,11 +2,20 @@
 #define INC_ROCTRACER_TRACE_ENTRIES_H_
 
 #include <cstdint>
+#ifdef INCLUDE_FROM_INC
+#include "inc/rocprofiler.h"
+#else
+#include "include/rocprofiler.h"
+#endif
 
 struct metric_trace_entry_t {
   uint32_t dispatch;
   const char* name;
-  uint64_t result;
+  rocprofiler_data_kind_t type;
+  union {
+    uint64_t result_uint64;
+    double result_double;
+  };
 };
 
 struct kernel_trace_entry_t {
