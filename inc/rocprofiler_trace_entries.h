@@ -5,13 +5,13 @@
 #ifdef INCLUDE_FROM_INC
 #include "inc/rocprofiler.h"
 #else
-#include "include/rocprofiler.h"
+#include "rocprofiler.h"
 #endif
 
 struct metric_trace_entry_t {
   uint32_t dispatch;
   const char* name;
-  rocprofiler_data_kind_t type;
+  rocprofiler_data_kind_t metric_type;
   union {
     uint64_t result_uint64;
     double result_double;
