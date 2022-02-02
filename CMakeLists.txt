@@ -75,6 +75,9 @@ if (NOT USE_PROF_API)
   set(USE_PROF_API 1)
 endif()
 
+## Include rocprofiler.h from inc
+add_definitions(-DINCLUDE_FROM_INC=1)
+
 # Protocol header lookup
 set(PROF_API_HEADER_NAME prof_protocol.h)
 if(USE_PROF_API EQUAL 1)
