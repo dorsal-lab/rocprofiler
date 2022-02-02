@@ -593,6 +593,12 @@ if [ $OUTPUT_PLUGIN = 0 ] ; then
 		RET=1
 	  fi
 	fi
+else
+	if test -f $PLUGIN_PATH/post_processing ; then
+		eval "$PLUGIN_PATH/post_processing $ROCP_OUTPUT_DIR"
+	else
+		echo "No postprocessing script found"
+	fi
 fi
 
 if [ "$DATA_PATH" = "$TMP_DIR" ] ; then
