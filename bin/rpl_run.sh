@@ -577,6 +577,13 @@ for name in $input_list; do
     RET=1
     break
   fi
+  if [ $OUTPUT_PLUGIN = 1 ] ; then
+  	if test -f $PLUGIN_PATH/post_processing ; then
+		eval "$PLUGIN_PATH/post_processing $ROCP_OUTPUT_DIR"
+	else
+		echo "No postprocessing script found"
+	fi
+  fi
 done
 
 if [ $OUTPUT_PLUGIN = 0 ] ; then 
@@ -592,12 +599,6 @@ if [ $OUTPUT_PLUGIN = 0 ] ; then
 		echo "Profiling data corrupted: '$OUTPUT_LIST'" | tee "$ROCPROFILER_SESS/error"
 		RET=1
 	  fi
-	fi
-else
-	if test -f $PLUGIN_PATH/post_processing ; then
-		eval "$PLUGIN_PATH/post_processing $ROCP_OUTPUT_DIR"
-	else
-		echo "No postprocessing script found"
 	fi
 fi
 
