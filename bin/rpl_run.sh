@@ -45,6 +45,7 @@ ROCTX_TRACE=0
 HSA_TRACE=0
 SYS_TRACE=0
 HIP_TRACE=0
+OUTPUT_PLUGIN=0
 
 # Generate stats
 GEN_STATS=0
@@ -179,6 +180,7 @@ usage() {
   echo "        </parameters>"
   echo "      </trace>"
   echo ""
+  echo "  --output-plugin <plugin directory> - to enable the use of a plugin"
   echo "  --trace-start <on|off> - to enable tracing on start [on]"
   echo "  --trace-period <dealy:length:rate> - to enable trace with initial delay, with periodic sample length and rate"
   echo "    Supported time formats: <number(m|s|ms|us)>"
@@ -257,6 +259,21 @@ run() {
     OUTPUT_LIST="$OUTPUT_LIST $ROCP_OUTPUT_DIR/results.txt"
   fi
 
+  if [ $OUTPUT_PLUGIN = 1 ] ; then
+    if [ ! -e "$PLUGIN_PATH" ] ; then
+      error "'$PLUGIN_PATH' directory does not exist"
+    fi
+    if [ ! -f "$PLUGIN_PATH/rocprofiler_plugin_lib.so" ] ; then
+      error "Could not find rocprofiler_plugin_lib.so library at '$PLUGIN_PATH'"
+    fi
+    if [ ! -e "$PLUGIN_PATH/roctracer_plugin_lib.so" ] ; then
+      error "Could not find roctracer_plugin_lib.so library at '$PLUGIN_PATH'"
+    fi    
+    export PLUGIN_LIB="enabled"
+    export PLUGIN_PATH
+    export ROCPROFILER_PLUGIN_LIB="$PLUGIN_PATH/rocprofiler_plugin_lib.so"
+    export ROCTRACER_PLUGIN_LIB="$PLUGIN_PATH/roctracer_plugin_lib.so"
+  fi
   API_TRACE=""
   MY_LD_PRELOAD=""
   if [ "$ROCTX_TRACE" = 1 ] ; then
@@ -275,7 +292,7 @@ run() {
   elif [ -n "$API_TRACE" ] ; then
     export ROCTRACER_DOMAIN=$API_TRACE
     OUTPUT_LIST="$ROCP_OUTPUT_DIR/"
-    MY_HSA_TOOLS_LIB="$TTLIB_PATH/libtracer_tool.so"
+    MY_HSA_TOOLS_LIB="$MY_HSA_TOOLS_LIB $TTLIB_PATH/libtracer_tool.so"
   fi
 
   retval=1
@@ -425,6 +442,9 @@ while [ 1 ] ; do
     export ROCP_TIMESTAMP_ON=1
     GEN_STATS=1
     HIP_TRACE=1
+      elif [ "$1" = "--output-plugin" ] ; then
+    OUTPUT_PLUGIN=1
+    PLUGIN_PATH="$2"
   elif [ "$1" = "--trace-start" ] ; then
     if [ "$2" = "off" ] ; then
       export ROCP_CTRL_RATE="-1:0:0"
@@ -561,20 +581,29 @@ for name in $input_list; do
     RET=1
     break
   fi
+  if [ $OUTPUT_PLUGIN = 1 ] ; then
+  	if test -f $PLUGIN_PATH/post_processing ; then
+		eval "$PLUGIN_PATH/post_processing $ROCP_OUTPUT_DIR"
+	else
+		echo "No postprocessing script found"
+	fi
+  fi
 done
 
-if [ -n "$csv_output" ] ; then
-  merge_output $OUTPUT_LIST
-  if [ "$GEN_STATS" = "1" ] ; then
-    db_output=$(echo $csv_output | sed "s/\.csv/.db/")
-    $ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $db_output $OUTPUT_LIST
-  else
-    $ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $csv_output $OUTPUT_LIST
-  fi
-  if [ "$?" -ne 0 ] ; then
-    echo "Profiling data corrupted: '$OUTPUT_LIST'" | tee "$ROCPROFILER_SESS/error"
-    RET=1
-  fi
+if [ $OUTPUT_PLUGIN = 0 ] ; then 
+	if [ -n "$csv_output" ] ; then
+	  merge_output $OUTPUT_LIST
+	  if [ "$GEN_STATS" = "1" ] ; then
+		db_output=$(echo $csv_output | sed "s/\.csv/.db/")
+		$ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $db_output $OUTPUT_LIST
+	  else
+		$ROCP_PYTHON_VERSION $BIN_DIR/tblextr.py $csv_output $OUTPUT_LIST
+	  fi
+	  if [ "$?" -ne 0 ] ; then
+		echo "Profiling data corrupted: '$OUTPUT_LIST'" | tee "$ROCPROFILER_SESS/error"
+		RET=1
+	  fi
+	fi
 fi
 
 if [ "$DATA_PATH" = "$TMP_DIR" ] ; then
