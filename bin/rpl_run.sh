@@ -212,7 +212,8 @@ fi
 # setting ROCM_LIB_PATH
 set_rocm_lib_path() {
 
-  for ROCM_LIB_PATH in "$ROOT_DIR/lib" "$ROOT_DIR/lib64" ; do
+  for ROCM_LIB_PATH in "/opt/rocm/lib /opt/rocm/lib" ; do
+     echo $ROCM_LIB_PATH
      if [ -d "$ROCM_LIB_PATH" ]; then
         return 0
      fi
@@ -225,10 +226,10 @@ set_rocm_lib_path() {
 # profiling run method
 OUTPUT_LIST=""
 run() {
-  if ! set_rocm_lib_path ; then
-     echo " Fatal could not find ROCm lib directory "
-     fatal
-  fi
+  # if ! set_rocm_lib_path ; then
+     # echo " Fatal could not find ROCm lib directory "
+     # fatal
+  # fi
   export ROCP_INPUT="$1"
   OUTPUT_DIR="$2"
   shift
