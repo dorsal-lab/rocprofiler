@@ -7,4 +7,4 @@ cp build/metrics.xml lib
 cp build/lib* lib
 cp build/gfx_metrics.xml lib
 mkdir tool && cp build/test/libtool.so tool
-ln -s bin/rpl_run.sh bin/rocprof
+ln bin/rpl_run.sh bin/rocprof
